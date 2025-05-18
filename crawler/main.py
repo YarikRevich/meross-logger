@@ -3,8 +3,6 @@ from broker import Broker
 
 def main():
     broker = Broker()
-    broker.start()
-
     handler = Handler(broker)
     
     try:
@@ -12,7 +10,7 @@ def main():
     except KeyboardInterrupt:
         pass    
         
-    broker.stop()
+    broker.close()
 
 if __name__ == "__main__":
     main()

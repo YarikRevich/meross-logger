@@ -1,27 +1,30 @@
-import json
 import os
-import paho.mqtt.client as mqtt
+from datetime import datetime, timezone
+from influxdb_client import WritePrecision, InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 __all__ = ["Broker"]
 
 class Broker:
-    """Represents MQTT broker wrapper."""
+    """Represents InfluxDB broker wrapper."""
     
     def __init__(self):
-        self.mqtt_client = mqtt.Client()
+        self.client = InfluxDBClient(
+            url=os.environ["INFLUXDB_HOST"], 
+            token=os.environ["INFLUXDB_TOKEN"], 
+            org=os.environ["INFLUXDB_ORG"], 
+            debug=False)
 
-    def send(self, payload: object) -> None:
-        """Sends payload to previously selected topic."""
+    def send(self, device: str, value: str) -> None:
+        """Sends payload to previously selected measurement."""
         
-        self.mqtt_client.publish(os.environ["MQTT_TOPIC"], json.dumps(payload))
+        p = Point("status").tag("device", device).field("value", value) \
+            .time(datetime.now(tz=timezone.utc), WritePrecision.MS)
+        write_api = self.client.write_api(write_options=SYNCHRONOUS)
+
+        write_api.write(bucket=os.environ["INFLUXDB_BUCKET"], record=p) 
         
-    def start(self) -> None:
-        """Starts MQTT broker."""
+    def close(self) -> None:
+        """Stops InfluxDB client."""
         
-        self.mqtt_client.connect(os.environ["MQTT_BROKER"], int(os.environ["MQTT_PORT"]), 60)
-        self.mqtt_client.loop_start()
-        
-    def stop(self) -> None:
-        """Stops MQTT broker."""
-        
-        self.mqtt_client.loop_stop()
+        self.client.close()

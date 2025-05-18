@@ -29,11 +29,10 @@ class Handler():
                 
                 match = MEROSS_PATTERN.match(line)
                 if match:
-                    device_name, status = match.groups()
+                    device, value = match.groups()
                     
-                    self.broker.send({
-                        "device": device_name,
-                        "status": status
-                    })
+                    print("Saved new value!")
+                    
+                    self.broker.send(device, value)
         
     
