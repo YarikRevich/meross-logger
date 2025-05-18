@@ -1,0 +1,27 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+
+rectangle "Switch" as switch {
+}
+
+rectangle "Moduł ESP32" as esp32 {
+  [API Server] as api
+}
+
+rectangle "Crawler Service" as crawlerService {
+}
+
+rectangle "Serwer Homebridge" as homebridge {
+  [Meross Plugin] as merossPlugin
+}
+
+rectangle "MQTT Broker" as mqttBroker {
+}
+
+switch --> merossPlugin : Send raw logs<U+0020><U+0020><U+0020><U+0020><U+0020><U+0020><U+0020>
+crawlerService <--> merossPlugin : Read and parse
+api --> mqttBroker : Retrieve logs
+crawlerService --> mqttBroker: Send parsed logs
+
+@enduml
